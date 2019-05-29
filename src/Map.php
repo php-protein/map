@@ -15,12 +15,15 @@ namespace Proteins;
 class Map implements \JsonSerializable {
     protected $fields = [];
 
+    public function __construct($fields=null) {
+        $this->load($fields);
+    }
+
     /**
      * Returns the map as an associative array
      * @return array reference
      */
-    public function & all()
-    {
+    public function & all() {
         return $this->fields;
     }
 
@@ -30,13 +33,12 @@ class Map implements \JsonSerializable {
      * @param  mixed $default (optional) The default value. If is a callable it will executed and the return value will be used.
      * @return mixed The value of the key or the default (resolved) value if the key not existed.
      */
-    public function get($key, $default=null)
-    {
+    public function get($key, $default=null) {
         if (null !== ($ptr =& $this->find($key, false))) {
             return $ptr;
         } else {
             if ($default !== null) {
-                return $this->set($key, is_callable($default) ? call_user_func($default) : $default);
+                return $this->set($key, \is_callable($default) ? \call_user_func($default) : $default);
             } else {
                 return null;
             }
@@ -49,9 +51,8 @@ class Map implements \JsonSerializable {
      * @param  mixed $value (optional) The value. If is a callable it will executed and the return value will be used.
      * @return mixed The value of the key or the default (resolved) value if the key not existed.
      */
-    public function set($key, $value=null)
-    {
-        if (is_array($key)) {
+    public function set($key, $value=null) {
+        if (\is_array($key)) {
             return $this->merge($key);
         } else {
             $ptr =& $this->find($key, true);
@@ -66,8 +67,7 @@ class Map implements \JsonSerializable {
      * @param  boolean $compact (optional) Compact map removing empty paths.
      * @return void
      */
-    public function delete($key, $compact=true)
-    {
+    public function delete($key, $compact=true) {
         $this->set($key, null);
         if ($compact) {
             $this->compact();
@@ -79,8 +79,7 @@ class Map implements \JsonSerializable {
      * @param  string $key The key path in dot notation
      * @return boolean
      */
-    public function exists($key)
-    {
+    public function exists($key) {
         return null !== $this->find($key, false);
     }
 
@@ -89,14 +88,8 @@ class Map implements \JsonSerializable {
      *
      * @return void
      */
-    public function clear()
-    {
+    public function clear() {
         $this->fields = [];
-    }
-
-    public function __construct($fields=null)
-    {
-        $this->load($fields);
     }
 
     /**
@@ -105,8 +98,7 @@ class Map implements \JsonSerializable {
      * @param  string $fields The array to merge
      * @return void
      */
-    public function load($fields)
-    {
+    public function load($fields) {
         if ($fields) {
             $this->fields = (array)$fields;
         }
@@ -117,14 +109,11 @@ class Map implements \JsonSerializable {
      *
      * @param mixed   $array The array to merge
      * @param boolean $merge_back If `true` merge the map over the $array, if `false` (default) the reverse.
-     *
-     * @return array|null
      */
-    public function merge($array, $merge_back=false) : ?array
-    {
+    public function merge($array, $merge_back=false) {
         return $this->fields = $merge_back
-            ? array_replace_recursive((array)$array, $this->fields)
-            : array_replace_recursive($this->fields, (array)$array);
+            ? \array_replace_recursive((array)$array, $this->fields)
+            : \array_replace_recursive($this->fields, (array)$array);
     }
 
     /**
@@ -132,18 +121,17 @@ class Map implements \JsonSerializable {
      *
      * @return void
      */
-    public function compact()
-    {
+    public function compact() {
         $array_filter_rec = /**
          * @return array
          */
         function ($input, $callback = null) use (&$array_filter_rec): array {
             foreach ($input as &$value) {
-                if (is_array($value)) {
+                if (\is_array($value)) {
                     $value = $array_filter_rec($value, $callback);
                 }
             }
-            return array_filter($input, $callback);
+            return \array_filter($input, $callback);
         };
 
         $this->fields = $array_filter_rec($this->fields, function ($a): bool {
@@ -158,11 +146,10 @@ class Map implements \JsonSerializable {
      * @param  callable $operation If passed this callback will be applied to the founded value.
      * @return mixed The founded value.
      */
-    public function & find($path, $create=false, callable $operation=null)
-    {
+    public function & find($path, $create=false, callable $operation=null) {
         $value = null;
         $create ? $value =& $this->fields : $value = $this->fields;
-        foreach (explode('.', $path) as $tok) {
+        foreach (\explode('.', $path) as $tok) {
             if ($create || isset($value[$tok])) {
                 $value =& $value[$tok];
             } else {
@@ -170,7 +157,7 @@ class Map implements \JsonSerializable {
                 break;
             }
         }
-        if (is_callable($operation)) {
+        if (\is_callable($operation)) {
             $operation($value);
         }
         return $value;
@@ -183,8 +170,7 @@ class Map implements \JsonSerializable {
      *
      * @return string        The json object
      */
-    public function jsonSerialize()
-    {
+    public function jsonSerialize() {
         return $this->fields;
     }
 }
